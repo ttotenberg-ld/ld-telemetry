@@ -22,22 +22,26 @@ const context = {
 // Initialize the LaunchDarkly client
 const client = initialize(LD_CLIENT_ID, context, {
   inspectors: inspectors(),
+  streaming: true,
 });
 
 // Register the client with LaunchDarkly telemetry
 register(client);
 
-// Wait for client initialization
-client.waitForInitialization().then(() => {
+// Function to update button visibility based on flag value
+function updateButtonVisibility() {
   const buttonEnabled = client.variation("enable-button", false);
   console.log("Flag value for enable-button:", buttonEnabled);
   
-  // Update the button visibility after initialization
   const featureButton = document.getElementById("feature-button");
   if (featureButton) {
     featureButton.style.display = buttonEnabled ? "inline-block" : "none";
   }
-});
+}
+
+// Add event listeners for LaunchDarkly flag changes
+client.on('ready', updateButtonVisibility);
+client.on('change:enable-button', updateButtonVisibility);
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
